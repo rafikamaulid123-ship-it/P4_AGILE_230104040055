@@ -6,7 +6,7 @@
   "scripts": {
     "test": "jest --runInBand",
     "lint:api": "spectral lint openapi/api.yaml",
-    "typecheck": "tsc -p --noEmit",
+    "typecheck": "tsc --noEmit",
     "dev:orders": "tsx services/order-service/src/server.ts",
     "dev:notif": "tsx services/notification-service/src/server.ts",
     "mock": "prism mock openapi/api.yaml"
