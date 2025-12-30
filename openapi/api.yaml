@@ -1,0 +1,113 @@
+openapi: 3.0.3
+info:
+  title: Mini E-Commerce API
+  version: 1.0.0
+  description: Kontrak API untuk praktikum #4 (Orders & Notifications).
+  contact:
+    name: Praktikum Web Service Engineering
+    email: wse-praktikum@example.edu
+servers:
+  - url: http://localhost
+tags:
+  - name: Orders
+    description: Endpoint terkait pembuatan dan pengelolaan pesanan.
+  - name: Notifications
+    description: Endpoint terkait daftar notifikasi sistem.
+paths:
+  /orders:
+    post:
+      tags: [Orders]
+      operationId: createOrder
+      summary: Create order
+      description: Membuat pesanan baru.
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrder'
+      responses:
+        '201':
+          description: Created
+          headers:
+            x-correlation-id:
+              schema: { type: string }
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /notifications:
+    get:
+      tags: [Notifications]
+      operationId: listNotifications
+      summary: List notifications
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100, default: 10 }
+      responses:
+        '200':
+          description: OK
+          headers:
+            x-correlation-id:
+              schema: { type: string }
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Notification' }
+                  total: { type: integer }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    CreateOrder:
+      type: object
+      required: [productId, quantity]
+      properties:
+        productId: { type: string, minLength: 1 }
+        quantity: { type: integer, minimum: 1 }
+    Order:
+      type: object
+      properties:
+        id: { type: string }
+        productId: { type: string }
+        quantity: { type: integer }
+        createdAt: { type: string, format: date-time }
+    Notification:
+      type: object
+      properties:
+        id: { type: string }
+        type: { type: string, enum: [ORDER_CREATED] }
+        message: { type: string }
+        createdAt: { type: string, format: date-time }
+    Error:
+      type: object
+      properties:
+        message: { type: string }
+        code: { type: string }
+  responses:
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Unauthorized:
+      description: Missing/invalid token
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
